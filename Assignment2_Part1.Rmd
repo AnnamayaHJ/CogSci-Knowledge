@@ -428,7 +428,6 @@ sum(posterior_j2[p_grid > 0.75])
 ### ANSWER:
 By multiplying the data with 100 we no longer see a large effect of prior choice. This reflects our previous point, namely that increased evidence results in increased probability. Had the teachers anwered this extensive amount of questions, we could be much more certain that their score reflected their actual CogSci knowledge no matter our previous intuitions/knowledge (priors).
 
-
 5. Imagine you're a skeptic and think your teachers do not know anything about CogSci, given the content of their classes. How would you operationalize that belief?
 
 ### ANSWER:
