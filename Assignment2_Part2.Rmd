@@ -1,0 +1,170 @@
+---
+title: "Computational Modeling - Week 5 - Assignment 2 - Part 2"
+author: "Riccardo Fusaroli"
+date: "2/19/2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(pacman)
+p_load(rethinking, tidyverse)
+```
+
+## In this assignment we learn how to assess rates from a binomial distribution, using the case of assessing your teachers' knowledge of CogSci.
+
+### Second part: Focusing on predictions
+
+Last year you assessed the teachers (darned time runs quick!). Now you want to re-test them and assess whether your models are producing reliable predictions. In Methods 3 we learned how to do machine-learning style assessment of predictions (e.g. rmse on testing datasets). Bayesian stats makes things a bit more complicated. So we'll try out how that works. N.B. You can choose which prior to use for the analysis of last year's data.
+
+Questions to be answered (but see guidance below):
+1- Write a paragraph discussing how assessment of prediction performance is different in Bayesian vs. frequentist models
+2- Provide at least one plot and one written line discussing prediction errors for each of the teachers.
+
+This is the old data:
+- Riccardo: 3 correct answers out of 6 questions
+- Kristian: 2 correct answers out of 2 questions (then he gets bored)
+- Josh: 160 correct answers out of 198 questions (Josh never gets bored)
+- Mikkel: 66 correct answers out of 132 questions
+
+This is the new data:
+- Riccardo: 9 correct answers out of 10 questions (then he freaks out about teaching preparation and leaves)
+- Kristian: 8 correct answers out of 12 questions
+- Josh: 148 correct answers out of 172 questions (again, Josh never gets bored)
+- Mikkel: 34 correct answers out of 65 questions
+
+```{r}
+p_grid <- seq(from = 0, to = 1, length.out = 200)
+```
+
+
+```{r}
+#Reconstructing the old results
+prior <- dnorm(p_grid, mean = 0.8, sd = 0.2)
+
+#compute likelihood at each value in grid
+likelihood_r <- dbinom(3, size = 6, prob = p_grid)
+
+#compute product of likelihood and prior
+unstd.posterior_r <- likelihood_r * prior
+
+#standardise the posterior, so it sums to 1
+prior_r <- unstd.posterior_r / sum(unstd.posterior_r)
+
+#making 10000 sampes based on the posterior distribution
+set.seed(69)
+samples_r <- sample(p_grid, prob = prior_r, size = 1e4, replace = T)
+dens(samples_r)
+
+#posterior predictive distribution
+ppd_r <- rbinom(1e4, size = 10, prob = samples_r)
+simplehist(ppd_k, xlab = "Posterior predictive distribution, Riccardo", col = blues9[-(1:3)])
+        abline(v = 9.08, col = "black", lty = 3, lwd = 2)
+```
+
+
+```{r}
+#Reconstructing the old results
+likelihood_k <- dbinom(2, size = 2, prob = p_grid)
+
+#compute product of likelihood and prior
+unstd.posterior_k <- likelihood_k * prior
+
+#standardise the posterior, so it sums to 1
+prior_k <- unstd.posterior_k / sum(unstd.posterior_k)
+
+set.seed(69)
+samples_k <- sample(p_grid, prob = prior_k, size = 1e4, replace = T)
+dens(samples_k)
+
+#posterior predictive distribution
+set.seed(69)
+ppd_k <- rbinom(1e4, size = 12, prob = samples_k)
+simplehist(ppd_k, xlab = "Posterior predictive distribution, Kristian", col = blues9[-(1:3)])
+        abline(v = 8.08, col = "black", lty = 3, lwd = 2)
+```
+
+
+```{r}
+#compute likelihood at each value in grid
+likelihood_j <- dbinom(160, size = 198, prob = p_grid)
+
+#compute product of likelihood and prior
+unstd.posterior_j <- likelihood_j * prior
+
+#standardise the posterior, so it sums to 1
+prior_j <- unstd.posterior_j / sum(unstd.posterior_j)
+
+set.seed(69)
+samples_j <- sample(p_grid, prob = prior_j, size = 1e4, replace = T)
+dens(samples_j)
+plot(samples_j)
+
+#posterior predictive distribution
+set.seed(69)
+ppd_j <- rbinom(1e4, size = 172, prob = samples_j)
+simplehist(ppd_j, xlab = "Posterior predictive distribution, Josh", col = blues9[-(1:3)])
+        abline(v = 148.2, col = "black", lty = 3, lwd = 1.5)
+```
+
+
+```{r}
+#compute likelihood at each value in grid
+likelihood_m <- dbinom(66, size = 132, prob = p_grid)
+
+#compute product of likelihood and prior
+unstd.posterior_m <- likelihood_m * prior
+
+#standardise the posterior, so it sums to 1
+prior_m <- unstd.posterior_m / sum(unstd.posterior_m)
+
+set.seed(69)
+samples_m <- sample(p_grid, prob = prior_m, size = 1e4, replace = T)
+dens(samples_m)
+plot(samples_m)
+
+#posterior predictive distribution
+set.seed(69)
+ppd_m <- rbinom(1e4, size = 65, prob = samples_m)
+simplehist(ppd_m, xlab = "Posterior predictive distribution, Mikkel", col = blues9[-(1:3)])
+        abline(v = 34.2, col = "black", lty = 3, lwd = 1.5)
+
+simplehist(ppd_m - 34)
+```
+
+
+
+```{r}
+simplehist(ppd_r, xlab = "Posterior predictive distribution, Riccardo", col = blues9[-(1:3)])
+        abline(v = 9.08, col = "black", lty = 3, lwd = 2)
+simplehist(ppd_k, xlab = "Posterior predictive distribution, Kristian", col = blues9[-(1:3)])
+        abline(v = 8.08, col = "black", lty = 3, lwd = 2)
+simplehist(ppd_j, xlab = "Posterior predictive distribution, Josh", col = blues9[-(1:3)])
+        abline(v = 148.2, col = "black", lty = 3, lwd = 1.5)
+
+simplehist(ppd_m, xlab = "Posterior predictive distribution, Mikkel", col = blues9[-(1:3)])
+        abline(v = 34.2, col = "black", lty = 3, lwd = 1.5)
+simplehist(ppd_m - 34)
+```
+
+
+Guidance Tips
+
+1. There are at least two ways of assessing predictions.
+2. Last year's results are this year's expectations.
+3. Are the parameter estimates changing? (way 1)
+4. How does the new data look in last year's predictive posterior? (way 2)
+
+
+### Depending on time: Questions from the handbook
+2H1. Suppose there are two species of panda bear. Both are equally common in the wild and live in the same places. They look exactly alike and eat the same food, and there is yet no genetic assay capable of telling them apart. They differ however in their family sizes. Species A gives birth to twins 10% of the time, otherwise birthing a single infant. Species B births twins 20% of the time, otherwise birthing singleton infants. Assume these numbers are known with certainty, from many years of field research.
+Now suppose you are managing a captive panda breeding program. You have a new female panda of unknown species, and she has just given birth to twins. What is the probability that her next birth will also be twins?
+
+2H2. Recall all the facts from the problem above. Now compute the probability that the panda we have is from species A, assuming we have observed only the first birth and that it was twins.
+
+2H3. Continuing on from the previous problem, suppose the same panda mother has a second birth and that it is not twins, but a singleton infant. Compute the posterior probability that this panda is species A.
+
+2H4. A common boast of Bayesian statisticians is that Bayesian inference makes it easy to use all of the data, even if the data are of different types. So suppose now that a veterinarian comes along who has a new genetic test that she claims can identify the species of our mother panda. But the test, like all tests, is imperfect. This is the information you have about the test:
+- The probability it correctly identifies a species A panda is 0.8.
+- The probability it correctly identifies a species B panda is 0.65.
+The vet administers the test to your panda and tells you that the test is positive for species A. First ignore your previous information from the births and compute the posterior probability that your panda is species A. Then redo your calculation, now using the birth data as well.
